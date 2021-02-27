@@ -1,0 +1,50 @@
+# Importing libraries and modules.
+import pandas as pd
+from sklearn import preprocessing
+from sklearn import metrics
+from sklearn.cluster import KMeans
+import matplotlib.pyplot as plt
+import seaborn as sns
+import warnings
+
+
+warnings.filterwarnings("ignore")
+sns.set(style="white", color_codes=True)
+
+dataset = pd.read_csv("CC.csv") # Reading the .csv file
+dataset = dataset.drop(['CUST_ID'], axis=1)  # Dropping CUST_ID because it does not have any relationship with the other features.
+
+dataset = dataset.fillna(dataset.mean()) # Replacing the null values of the dataset with the mean.
+
+
+x = dataset.iloc[:,[i for i in range(16)]]  # Splitting the features individually.
+y = dataset.iloc[:,-1]
+
+
+scaler = preprocessing.StandardScaler()  # Scaling to handle magnitudes that vary.
+scaler.fit(x)
+X_scaled_array = scaler.transform(x)
+X_scaled = pd.DataFrame(X_scaled_array, columns = x.columns)
+
+# Elbow method.
+wcss = []
+for i in range(1,11):
+    kmeans = KMeans(n_clusters=i,init='k-means++',max_iter=300,n_init=10,random_state=0)
+    kmeans.fit(X_scaled)
+    wcss.append(kmeans.inertia_)
+
+# Plotting the graph for the Elbow method.
+plt.plot(range(1,11),wcss)
+plt.title('The Elbow Method')
+plt.xlabel('Number of Clusters')
+plt.ylabel('Wcss')
+plt.show()
+
+
+
+sclusters = 8  # Using k=8 because it provides the best accuracy.
+km = KMeans(n_clusters=sclusters)
+km.fit(X_scaled)
+yscaled_cluster_kmeans = km.predict(X_scaled)
+scaledScore = metrics.silhouette_score(X_scaled, yscaled_cluster_kmeans)
+print(scaledScore)  # Printing the accuracy.
