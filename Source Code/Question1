@@ -1,0 +1,43 @@
+# Importing libraries and modules.
+import pandas as pd
+from sklearn import metrics
+from sklearn.cluster import KMeans
+import matplotlib.pyplot as plt
+import seaborn as sns
+import warnings
+
+warnings.filterwarnings("ignore")
+sns.set(style="white", color_codes=True)
+
+dataset = pd.read_csv("CC.csv")  # Reading the .csv file.
+dataset = dataset.drop(['CUST_ID'], axis=1)
+
+
+print(dataset.isnull().sum())  # Checking for null values in each column of the dataset.
+dataset = dataset.fillna(dataset.mean())  # Replacing the null values of the dataset with the mean.
+
+
+# Elbow Method.
+x = dataset.iloc[:,[i for i in range(16)]]  # Selecting features from the dataset.
+y = dataset.iloc[:, -1]  # Cluster column.
+wcss = []
+for i in range(1,11):
+    kmeans = KMeans(n_clusters=i, init='k-means++', max_iter=300, n_init=10, random_state=0)
+    kmeans.fit(x)
+    wcss.append(kmeans.inertia_)
+
+# Plotting the graph.
+plt.plot(range(1, 11), wcss)
+plt.title('The Elbow Method')
+plt.xlabel('Number of Clusters')
+plt.ylabel('Wcss')
+plt.show()
+
+
+# Calculating the Silhouette score.
+nclusters = 3  # this is the k in kmeans
+km = KMeans(n_clusters=nclusters)
+km.fit(x)
+y_cluster_kmeans = km.predict(x)
+score = metrics.silhouette_score(x, y_cluster_kmeans)
+print(score)  # Printing the accuracy.
